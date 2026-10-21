@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Сообщения
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h1 style="margin-top: 0;">Мои диалоги</h1>
+
+        {% if conversations %}
+            {% for item in conversations %}
+                <a class="chat-row" href="{{ url_for('chat', username=item.partner.username) }}">
+                    {% if item.partner.avatar_filename %}
+                        <img
+                            class="avatar-small"
+                            src="{{ url_for('uploaded_file', filename=item.partner.avatar_filename) }}"
+                            alt=""
+                        >
+                    {% else %}
+                        <div class="avatar-small placeholder">Без фото</div>
+                    {% endif %}
+
+                    <div class="chat-row-body">
+                        <div class="chat-row-top">
+                            <strong>{{ item.partner.username }}</strong>
+                            <span class="muted">
+                                {{ item.last_message.created_at.strftime("%d.%m.%Y %H:%M") }}
+                            </span>
+                        </div>
+
+                        <div class="chat-preview">
+                            {% if item.last_message.sender_id == current_user.id %}Вы: {% endif %}
+                            {{ item.last_message.body }}
+                        </div>
+                    </div>
+
+                    {% if item.unread %}
+                        <span class="badge">{{ item.unread }}</span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        {% else %}
+            <p>У вас пока нет диалогов. Напишите кому-нибудь со страницы профиля!</p>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Регистрация
+{% endblock %}
+
+{% block content %}
+    <div class="card" style="max-width: 420px; margin: 0 auto;">
+        <h1>Регистрация</h1>
+
+        <form method="post">
+            <label>
+                Логин
+                <input
+                    type="text"
+                    name="username"
+                    minlength="3"
+                    required
+                    value="{{ request.form.get('username', '') }}"
+                >
+            </label>
+
+            <label>
+                Пароль
+                <input
+                    type="password"
+                    name="password"
+                    minlength="6"
+                    required
+                >
+            </label>
+
+            <label>
+                Повтор пароля
+                <input
+                    type="password"
+                    name="confirm"
+                    minlength="6"
+                    required
+                >
+            </label>
+
+            <button type="submit">
+                Создать аккаунт
+            </button>
+        </form>
+
+        <p>
+            Уже есть аккаунт?
+            <a href="{{ url_for('login') }}">Войти</a>
+        </p>
+    </div>
+{% endblock %}

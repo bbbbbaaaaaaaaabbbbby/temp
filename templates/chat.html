@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Чат с {{ partner.username }}
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h1 style="margin-top: 0;">
+            Чат с
+            <a href="{{ url_for('profile', username=partner.username) }}">
+                {{ partner.username }}
+            </a>
+        </h1>
+
+        <div
+            class="chat-box"
+            id="chat-box"
+            data-updates-url="{{ url_for('chat_updates', username=partner.username) }}"
+            data-last-id="{{ messages[-1].id if messages else 0 }}"
+        >
+            {% for message in messages %}
+                <div class="message {{ 'mine' if message.sender_id == current_user.id else 'other' }}">
+                    <p>{{ message.body }}</p>
+                    <div class="muted">{{ message.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
+                </div>
+            {% else %}
+                <p class="muted">Сообщений пока нет. Напишите первым!</p>
+            {% endfor %}
+        </div>
+
+        <form
+            class="chat-form"
+            method="post"
+            action="{{ url_for('send_message', username=partner.username) }}"
+        >
+            <input
+                type="text"
+                name="body"
+                placeholder="Текст сообщения..."
+                autocomplete="off"
+                required
+            >
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const updatesUrl = chatBox.dataset.updatesUrl;
+        let lastId = parseInt(chatBox.dataset.lastId, 10) || 0;
+
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendMessage(msg) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "message " + (msg.mine ? "mine" : "other");
+
+            const text = document.createElement("p");
+            text.textContent = msg.body;
+
+            const time = document.createElement("div");
+            time.className = "muted";
+            time.textContent = msg.time;
+
+            wrapper.appendChild(text);
+            wrapper.appendChild(time);
+            chatBox.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        scrollToBottom();
+
+        // раз в 3 секунды спрашиваем сервер о новых сообщениях
+        setInterval(async function () {
+            try {
+                const response = await fetch(updatesUrl + "?after_id=" + lastId);
+                if (!response.ok) return;
+
+                const incoming = await response.json();
+
+                for (const msg of incoming) {
+                    if (msg.id > lastId) lastId = msg.id;
+                    appendMessage(msg);
+                }
+            } catch (error) {
+                // ошибки сети игнорируем
+            }
+        }, 3000);
+    </script>
+{% endblock %}
